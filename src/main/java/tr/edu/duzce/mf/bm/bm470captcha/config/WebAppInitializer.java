@@ -5,6 +5,7 @@ import jakarta.servlet.ServletRegistration;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 
 public class WebAppInitializer implements WebApplicationInitializer {
@@ -17,6 +18,13 @@ public class WebAppInitializer implements WebApplicationInitializer {
                         ,new DispatcherServlet(context));
         dispatcherServlet.setLoadOnStartup(1);
         dispatcherServlet.addMapping("/");
+
+        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+        characterEncodingFilter.setEncoding("UTF-8");
+        characterEncodingFilter.setForceEncoding(true);
+        servletContext.addFilter("characterEncodingFilter", characterEncodingFilter)
+                .addMappingForUrlPatterns(null, false, "/*");
+
     }
     private AnnotationConfigWebApplicationContext getContext() {
         AnnotationConfigWebApplicationContext context = new
