@@ -1,5 +1,6 @@
 package tr.edu.duzce.mf.bm.bm470captcha.config;
 
+import tr.edu.duzce.mf.bm.bm470captcha.interceptor.RequestInterceptor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -51,7 +52,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(localeChangeInterceptor());
+        registry.addInterceptor(new RequestInterceptor()).addPathPatterns("/*");
     }
 
     @Bean
