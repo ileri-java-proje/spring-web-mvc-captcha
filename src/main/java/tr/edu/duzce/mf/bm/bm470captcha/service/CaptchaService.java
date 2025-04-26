@@ -49,4 +49,5 @@ public class CaptchaService {
         }
         return captcha.getTextValue().equalsIgnoreCase(userInput.trim());
     }
+
 }
