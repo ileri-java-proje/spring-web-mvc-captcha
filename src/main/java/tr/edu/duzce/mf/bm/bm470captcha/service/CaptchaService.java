@@ -2,7 +2,9 @@ package tr.edu.duzce.mf.bm.bm470captcha.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tr.edu.duzce.mf.bm.bm470captcha.entity.Captcha;
@@ -17,18 +19,26 @@ public class CaptchaService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     /**
      * Veritabanından rastgele bir Captcha döner.
      */
     public Captcha getRandomCaptcha() {
-        List<Captcha> captchas = entityManager
-                .createQuery("SELECT c FROM Captcha c", Captcha.class)
-                .getResultList();
+        // CriteriaBuilder oluştur
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        // Captcha tipinde bir CriteriaQuery oluştur
+        CriteriaQuery<Captcha> cq = cb.createQuery(Captcha.class);
+        // FROM Captcha c
+        Root<Captcha> root = cq.from(Captcha.class);
+        // SELECT c
+        cq.select(root);
+
+        // Sorguyu çalıştır
+        List<Captcha> captchas = entityManager.createQuery(cq).getResultList();
 
         if (captchas.isEmpty()) {
-            return null; // veya exception fırlatılabilir
+            return null; // veya exception atılabilir
         }
 
         int randomIndex = random.nextInt(captchas.size());
@@ -49,5 +59,4 @@ public class CaptchaService {
         }
         return captcha.getTextValue().equalsIgnoreCase(userInput.trim());
     }
-
 }
