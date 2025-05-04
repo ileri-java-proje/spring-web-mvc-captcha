@@ -1,13 +1,14 @@
 package tr.edu.duzce.mf.bm.bm470captcha.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import tr.edu.duzce.mf.bm.bm470captcha.service.UserVerificationService;
 
-@Controller
-@RequestMapping("/user")
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserVerificationService userVerificationService;
@@ -17,44 +18,45 @@ public class UserController {
         this.userVerificationService = userVerificationService;
     }
 
-    @GetMapping("/login")
-    public String getLoginPage() {
-        return "login"; // login.html veya login.jsp gibi bir view dönecek
-    }
-
+    /**
+     * Kullanıcı girişini doğrulayan endpoint.
+     */
     @PostMapping("/login")
-    public String loginUser(
-            @RequestParam("username") String username,
-            @RequestParam("password") String password,
-            Model model) {
+    public Map<String, Object> loginUser(@RequestParam("username") String username,
+                                         @RequestParam("password") String password) {
 
         boolean isAuthenticated = userVerificationService.verifyLogin(username, password);
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", isAuthenticated);
+
         if (isAuthenticated) {
-            return "redirect:/home"; // Giriş başarılıysa ana sayfaya yönlendir
+            response.put("message", "Giriş başarılı!");
         } else {
-            model.addAttribute("error", "Kullanıcı adı veya şifre hatalı!");
-            return "login"; // Hatalı girişte login sayfasına dön
+            response.put("message", "Kullanıcı adı veya şifre hatalı!");
         }
+
+        return response;
     }
 
-    @GetMapping("/register")
-    public String getRegisterPage() {
-        return "register"; // register.html gibi bir view dönecek
-    }
-
+    /**
+     * Yeni kullanıcı kaydeden endpoint.
+     */
     @PostMapping("/register")
-    public String registerUser(
-            @RequestParam("username") String username,
-            @RequestParam("password") String password,
-            Model model) {
+    public Map<String, Object> registerUser(@RequestParam("username") String username,
+                                            @RequestParam("password") String password) {
+
+        Map<String, Object> response = new HashMap<>();
 
         try {
             userVerificationService.registerUser(username, password);
-            return "redirect:/user/login"; // Kayıt başarılıysa login sayfasına yönlendir
+            response.put("success", true);
+            response.put("message", "Kayıt başarılı!");
         } catch (Exception e) {
-            model.addAttribute("error", "Kayıt sırasında hata oluştu: " + e.getMessage());
-            return "register";
+            response.put("success", false);
+            response.put("message", "Kayıt sırasında hata oluştu: " + e.getMessage());
         }
+
+        return response;
     }
 }

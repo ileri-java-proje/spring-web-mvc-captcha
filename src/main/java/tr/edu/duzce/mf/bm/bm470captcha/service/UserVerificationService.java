@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import tr.edu.duzce.mf.bm.bm470captcha.entity.User;
+import tr.edu.duzce.mf.bm.bm470captcha.exception.UserException;
 
 import java.util.List;
 
@@ -43,15 +44,19 @@ public class UserVerificationService {
             List<User> users = entityManager.createQuery(cq).getResultList();
 
             if (users.isEmpty()) {
-                return false;
+                throw new UserException("Kullanıcı adı bulunamadı.");
             }
 
             User user = users.get(0);
 
             // BCrypt ile şifre kontrolü yap
-            return BCrypt.checkpw(password, user.getPassword());
+            if (!BCrypt.checkpw(password, user.getPassword())) {
+                throw new UserException("Yanlış şifre.");
+            }
+
+            return true;
         } catch (Exception e) {
-            return false;
+            throw new UserException("Kullanıcı doğrulama işlemi sırasında bir hata oluştu.", e);
         }
     }
 
@@ -59,13 +64,18 @@ public class UserVerificationService {
      * Yeni kullanıcı kaydeder (şifreyi hashleyerek).
      */
     public void registerUser(String username, String password) {
-        // Şifreyi BCrypt ile hashle
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        try {
+            // Şifreyi BCrypt ile hashle
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(hashedPassword);
+            // Yeni kullanıcı oluştur ve kaydet
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(hashedPassword);
 
-        entityManager.persist(user);
+            entityManager.persist(user);
+        } catch (Exception e) {
+            throw new UserException("Kullanıcı kaydetme işlemi sırasında bir hata oluştu.", e);
+        }
     }
 }
